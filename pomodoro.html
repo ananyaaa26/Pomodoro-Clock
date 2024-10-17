@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pomodoro Clock</title>
+
+  <style>
+  
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f0a500;
+    }
+
+    .container {
+      width: 220px;
+      height: 460px;
+      background: rgba(40, 40, 40, 0.9); 
+      border-radius: 10px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      color: white;
+      text-align: center;
+    }
+
+    #time-display {
+      font-size: 48px; 
+      margin: 20px 0;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+
+    .controls div {
+      text-align: center;
+    }
+
+    .controls span {
+      display: block;
+      margin: 5px 0;
+      font-size: 16px;
+    }
+
+    button {
+      background-color: black;
+      color: white;
+      border: none;
+      padding: 8px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+    }
+
+    .disabled {
+      pointer-events: none;
+      opacity: 0.5;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div id="time-display">20:00</div>
+
+    <div class="controls">
+      <div>
+        <span>Session Time</span>
+        <button id="session-decrease">-</button>
+        <span id="session-length">20</span> min
+        <button id="session-increase">+</button>
+      </div>
+
+      <div>
+        <span>Break Time</span>
+        <button id="break-decrease">-</button>
+        <span id="break-length">5</span> min
+        <button id="break-increase">+</button>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button id="start-btn">Start</button>
+      <button id="reset-btn">Reset</button>
+    </div>
+  </div>
+
+  <script>
+    let sessionTime = 20;
+    let breakTime = 5;
+    let timer;
+    let isSession = true;
+    let timeRemaining = sessionTime * 60;
+    let running = false;
+
+    const timeDisplay = document.getElementById("time-display");
+    const sessionLengthDisplay = document.getElementById("session-length");
+    const breakLengthDisplay = document.getElementById("break-length");
+    const startBtn = document.getElementById("start-btn");
+    const resetBtn = document.getElementById("reset-btn");
+
+
+    function formatTime(seconds) {
+      const minutes = Math.floor(seconds / 60).toString().padStart(2, '0');
+      const secs = (seconds % 60).toString().padStart(2, '0');
+      return `${minutes}:${secs}`;
+    }
+
+
+    function updateTimeDisplay() {
+      timeDisplay.textContent = formatTime(timeRemaining);
+    }
+
+
+    function startTimer() {
+      running = true;
+      disableControls(true);
+
+      timer = setInterval(() => {
+        timeRemaining--;
+
+        if (timeRemaining < 0) {
+          isSession = !isSession;
+          timeRemaining = (isSession ? sessionTime : breakTime) * 60;
+        }
+
+        updateTimeDisplay();
+      }, 1000);
+
+      startBtn.textContent = "Pause";
+    }
+
+
+    function stopTimer() {
+      clearInterval(timer);
+      running = false;
+      disableControls(false);
+      startBtn.textContent = "Start";
+    }
+
+
+    startBtn.addEventListener("click", () => {
+      if (running) {
+        stopTimer();
+      } else {
+        startTimer();
+      }
+    });
+
+
+    resetBtn.addEventListener("click", () => {
+      clearInterval(timer);
+      isSession = true;
+      timeRemaining = sessionTime * 60;
+      running = false;
+      startBtn.textContent = "Start";
+      updateTimeDisplay();
+      disableControls(false);
+    });
+
+
+    function disableControls(disabled) {
+      document.querySelectorAll("button:not(#start-btn):not(#reset-btn)").forEach(button => {
+        button.classList.toggle("disabled", disabled);
+      });
+    }
+
+
+    document.getElementById("session-increase").addEventListener("click", () => {
+      sessionTime++;
+      sessionLengthDisplay.textContent = sessionTime;
+      if (!running) timeRemaining = sessionTime * 60;
+      updateTimeDisplay();
+    });
+
+    document.getElementById("session-decrease").addEventListener("click", () => {
+      if (sessionTime > 1) {
+        sessionTime--;
+        sessionLengthDisplay.textContent = sessionTime;
+        if (!running) timeRemaining = sessionTime * 60;
+        updateTimeDisplay();
+      }
+    });
+
+    document.getElementById("break-increase").addEventListener("click", () => {
+      breakTime++;
+      breakLengthDisplay.textContent = breakTime;
+    });
+
+    document.getElementById("break-decrease").addEventListener("click", () => {
+      if (breakTime > 1) {
+        breakTime--;
+        breakLengthDisplay.textContent = breakTime;
+      }
+    });
+
+    
+    updateTimeDisplay();
+  </script>
+
+</body>
+</html>
